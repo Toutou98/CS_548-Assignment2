@@ -4,48 +4,48 @@
 ---
 
 ### Task 1
-	* a)
+  * a)
 		
-			kubectl apply -f task1.yaml
+		kubectl apply -f task1.yaml
 			
-		![1](task1/1.JPG)
+	![1](task1/1.JPG)
 
-	* b)
+  * b)
 	
-			kubectl port-forward nginx-pod
+		kubectl port-forward nginx-pod
 			
-		![2](task1/2.JPG)
+	![2](task1/2.JPG)
 		
-	* c)
+  * c)
 	
-			kubectl logs nginx-pod
+		kubectl logs nginx-pod
 			
-		![3](task1/3.JPG)
+	![3](task1/3.JPG)
 		
-	* d)
+  * d)
 			
-			kubectl exec -it nginx-pod  -- //bin//sh
+		kubectl exec -it nginx-pod  -- //bin//sh
 			
-		![4](task1/4.JPG)
-		![5](task1/5.JPG)
-		![6](task1/6.JPG)
+	![4](task1/4.JPG)
+	![5](task1/5.JPG)
+	![6](task1/6.JPG)
 		
-	* e)
+  * e)
 	
-			Μεταφορά αρχείου από το container στον τοπικό υπολογιστή:
-			kubectl cp nginx-pod:usr/share/nginx/html/index.html ./index.html
+		Μεταφορά αρχείου από το container στον τοπικό υπολογιστή:
+		kubectl cp nginx-pod:usr/share/nginx/html/index.html ./index.html
 			
-			Μεταφορά αρχείου από τον τοπικό υπολογιστή στο container:
-			kubectl cp ./index.html nginx-pod:usr/share/nginx/html/index.html
+		Μεταφορά αρχείου από τον τοπικό υπολογιστή στο container:
+		kubectl cp ./index.html nginx-pod:usr/share/nginx/html/index.html
 			
-		![7](task1/7.JPG)
-		![8](task1/8.JPG)
+	![7](task1/7.JPG)
+	![8](task1/8.JPG)
 		
-	* f)
+  * f)
 	
-			kubectl delete -f task1.yaml
+		kubectl delete -f task1.yaml
 			
-		![9](task1/9.JPG)
+	![9](task1/9.JPG)
 		
 		
 ### Task 2
