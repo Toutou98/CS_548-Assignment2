@@ -1,0 +1,206 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: task4-service
+spec:
+  selector:
+    app: local548
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: output-volume
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: git-volume
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: build-script
+data:
+  build-script.sh: |
+    #!/bin/sh
+    apt-get update
+    apt-get install -y git make curl
+    curl -L https://github.com/gohugoio/hugo/releases/download/v0.111.2/hugo_extended_0.111.2_linux-amd64.deb -o hugo.deb
+    apt install ./hugo.deb
+    cd git
+    git clone https://github.com/chazapis/hy548.git
+    cd hy548
+    git submodule init
+    git submodule update
+    make
+    cp -R html/public/* ../../html-files
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rebuild-script
+data:
+  rebuild-script.sh: |
+    #!/bin/sh
+    apt-get update
+    apt-get install -y git make curl
+    cd git/hy548
+    if [ -n "$(git status --porcelain)" ]; then
+      git pull
+      curl -L https://github.com/gohugoio/hugo/releases/download/v0.111.2/hugo_extended_0.111.2_linux-amd64.deb -o hugo.deb
+      apt install ./hugo.deb
+      make 
+      cp -R html/public/* ../../html-files
+      echo The website was updated successfully
+    else
+      echo No changes were made
+    fi
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wait-script
+data:
+  wait-script.sh: |
+    #!/bin/sh
+    echo "Waiting for the website to build..."
+    while [ ! -f /output/index.html ]
+    do
+      echo "Website not yet built. Waiting 15 seconds..."
+      sleep 15
+    done
+    echo "Website build complete. Continuing with pod startup."
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: build
+spec:
+  template:
+    metadata:
+      name: build-website
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: ubuntu
+        image: ubuntu:20.04
+        command: ["/bin/sh", "-c", "./config/build-script.sh"]
+        volumeMounts:
+        - name: config-volume
+          mountPath: "/config"
+        - name: output-volume
+          mountPath: "/html-files"
+        - name: git-volume
+          mountPath: "/git"
+      volumes:
+      - name: config-volume
+        configMap:
+          name: build-script
+          defaultMode: 0777
+      - name: output-volume
+        persistentVolumeClaim:
+          claimName: output-volume
+      - name: git-volume
+        persistentVolumeClaim:
+          claimName: git-volume
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rebuild
+spec:
+  schedule: "15 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: rebuild-site
+              image: ubuntu:20.04
+              command: ["/bin/sh", "-c", "./config/rebuild-script.sh"]
+              volumeMounts:
+                - name: config-volume
+                  mountPath: /config
+                - name: output-volume
+                  mountPath: /html-files
+                - name: git-volume
+                  mountPath: "/git"
+          volumes:
+            - name: config-volume
+              configMap:
+                name: rebuild-script
+                defaultMode: 0777
+            - name: output-volume
+              persistentVolumeClaim:
+                claimName: output-volume
+            - name: git-volume
+              persistentVolumeClaim:
+                claimName: git-volume                
+          restartPolicy: OnFailure
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: local548
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: local548
+  template:
+    metadata:
+      labels:
+        app: local548
+    spec:
+      initContainers:
+      - name: wait-container
+        image: busybox:1.33.1
+        command: ['sh', '-c', './config/wait-script.sh']
+        volumeMounts:
+        - name: wait-script-volume
+          mountPath: /config/wait-script.sh
+          subPath: wait-script.sh
+        - name: output-volume
+          mountPath: /output
+      containers:
+      - name: nginx-container
+        image: nginx:1.23.3-alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: output-volume 
+          mountPath: usr/share/nginx/html
+      volumes:
+      - name: output-volume
+        persistentVolumeClaim:
+          claimName: output-volume
+      - name: wait-script-volume
+        configMap:
+          name: wait-script
+          defaultMode: 0777
