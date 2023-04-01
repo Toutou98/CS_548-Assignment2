@@ -5,8 +5,8 @@ metadata:
 data:
   build-script.sh: |
     #!/bin/sh
-    apt update
-    apt install -y git make curl
+    apt-get update
+    apt-get install -y git make curl
     curl -L https://github.com/gohugoio/hugo/releases/download/v0.111.2/hugo_extended_0.111.2_linux-amd64.deb -o hugo.deb
     apt install ./hugo.deb
     git clone https://github.com/chazapis/hy548.git
