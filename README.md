@@ -50,6 +50,7 @@
 		
 ### Task 2
   * a)
+
 		Παραθέτω το task2.yaml στον κατάλογο task2. Αρχικά δημιουργώ ένα
 		config map οπου φτιάχνει το build-script.sh. Αυτό το script έχει
 		τις εντολλές για να κάνει update, να κατεβάσει το git, make, curl,
