@@ -108,11 +108,16 @@
 ### Task 4
   * a)
 
-		Παραθέτω το task4.yaml στον κατάλογο task4.
-		
+		Παραθέτω το task4.yaml στον κατάλογο task4. Οι διαφορές με το προηγούμενο ερώτημα είναι ότι δημιούργησα
+		το deployment και μετέφερα εκεί το container που θα γίνεται host το website. Επίσης δημιουργώ ένα
+		"wait-container" που παίρνει ένα budybox image (750Kb compress size) που τρέχει το wait-script.sh
+		(script που κάνει mount από ένα νέο config map που έφτιαξα), το οποίο τρέχει ένα loop κάθε 15 δευτερόλεπτα
+		και ελέγχει εάν έχουν μεταφερθεί θα αρχεία που έφτιαξε το hugo ή όχι. Όταν μεταφερθούν τα αρχεία και το δεί
+		το wait-script τότε τερματίζει και τρέχει το nginx-container που κάνει Mount τα html αρχεία και τρέχει το site.
+		Όπως και πριν κάνω port forward και ελέγχω τα logs και τα pods για να επιβεβαιωθώ ότι το deployment εκτελέστηκε
+		σωστά. Επίσης με Kubectl get services -o wide μπορούμε να δούμε το νέο service για το app μας.
 		
 	![1](task4/1.JPG)
-	![2](task4/2.JPG)
-	![3](task4/3.JPG)
-	![4](task4/4.JPG)
+	
+
 
