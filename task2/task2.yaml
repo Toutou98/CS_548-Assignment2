@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: build-script
+data:
+  build-script.sh: |
+    #!/bin/sh
+    apt update
+    apt install -y git make curl
+    curl -L https://github.com/gohugoio/hugo/releases/download/v0.111.2/hugo_extended_0.111.2_linux-amd64.deb -o hugo.deb
+    apt install ./hugo.deb
+    git clone https://github.com/chazapis/hy548.git
+    cd hy548
+    git submodule init
+    git submodule update
+    make 
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: local548
+spec:
+  template:
+    metadata:
+      name: build-website
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: ubuntu
+        image: ubuntu:20.04
+        command: ["/bin/sh", "-c", "bash /config/build-script.sh"]
+        volumeMounts:
+        - name: config-volume
+          mountPath: "/config"
+      volumes:
+      - name: config-volume
+        configMap:
+          name: build-script
+
